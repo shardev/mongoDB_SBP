@@ -21,3 +21,35 @@ db.getCollection('rents').aggregate([
         $limit : 1
     }
 ])
+
+// 10) Koja je prosječna veličina stana u m2 u zavisnosti od broja soba tog stana i postojanja ostave u istom?
+db.getCollection('rents').aggregate([
+    { 
+        $group : { 
+                "_id" : {"noRooms" : "$noRooms", "cellar" : "$cellar" } ,
+                areas : { $push : "$livingSpace" },
+                typeCounter : { $sum : 1 }
+                 }
+    },
+    {
+        $project: {
+            "noRooms": 1,
+            "typeCounter" : 1,
+            "results": {
+                $reduce: {
+                    input: "$areas",
+                    initialValue: { sum: 0 },
+                    in: {
+                        sum: { $add : ["$$value.sum", "$$this"] }
+                    }
+                }
+            }
+        }
+    },
+    {
+        $project: {
+            "noRooms": 1,
+            avgArea: { $divide: [ "$results.sum", "$typeCounter" ] }
+        }
+    }   
+])
