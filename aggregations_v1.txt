@@ -91,7 +91,6 @@ db.getCollection('rents').aggregate([
 
 --------------------------------------------------------------------------------------
 // TODO
-
 // 7. Da li je prosečna cena stanova koji su renovirani u poslednjih 10 godina veća od prosečne cene stanova ZA SVAKI OD GRADOVA?
 db.getCollection('rents').aggregate([
     { 
