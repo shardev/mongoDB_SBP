@@ -1,14 +1,16 @@
-// 1. Koji tip objekata je energetski najefikasniji i šta se najčešće koristi kao izvor energije kod takvih tipova?
+// 1. Sta se najčešće koristi kao izvor energije kod energetski najefikasnijih objekata i koji tip objekata je najcesce energetski najefikasniji?
 db.getCollection('rents').aggregate([
     {
         $match: {
-            "energyEfficiencyClass": {$eq: "B"}
+            "energyEfficiencyClass": {$eq: "B"} //change efficiency
             }
     },
     {
         $group: {
-            "_id": {"heatingType":"$heatingType", "typeOfFlat" : "$typeOfFlat" }, "count": { $sum: 1}
-            }
+            "_id": { "typeOfFlat" : "$typeOfFlat" }, 
+            "count": { $sum: 1},
+            "typeOfHeating" : {$push : "$heatingType" }
+        }
     },
     {
         $sort: {
@@ -17,7 +19,29 @@ db.getCollection('rents').aggregate([
     },
     {
         $limit : 1
-    }
+    },
+    {
+        $unwind :  "$typeOfHeating" 
+    },
+    {
+        $group: {
+            "_id": {
+                "heating": "$typeOfHeating"
+            },
+            "countOfUnitsWithHeating": {
+                $sum: 1
+            },
+            "tFlat" : { $first : "$_id.typeOfFlat" }
+        }
+  },
+  {
+      $sort : {
+          "countOfUnitsWithHeating" : -1
+      }
+  },
+  {
+      $limit : 1
+  }
 ])
 
 -------------------------------------------------------------------------------------------------------------
@@ -32,10 +56,10 @@ db.getCollection('rents').aggregate([
 ])
 
 ----------------------------------------------------------------------------------------------------
-// 3. Iz koje godine ima najvise stanova i u kom gradu tako a da nisu renovirani u zadnjih 10 godina
+// 3. Iz koje godine ima najvise stanova i u kom gradu a da su renovirani u zadnjih 10 godina i koliko je prosjecna cijena zakupa?
 db.getCollection('rents').aggregate([
     {
-        $match : { "lastRefurbish" : { $lt : 2011 } }
+        $match : { "lastRefurbish" : { $gt : 2011 } }
     },
     { 
         $group : { 
@@ -55,7 +79,7 @@ db.getCollection('rents').aggregate([
 ])
 
 --------------------------------------------------------------------------------------------------------------------------------------
-// 4. U kojoj godini (ako je poznata) su se zbirno najskuplje izdavali stanovi i koliko ima stanova koji dozvoljavaju ljubimce te godine?
+// 4. U kojoj godini su napravljeni stanovi (ako je poznata) tako da se zbirno najskuplje izdaju i koliko ima stanova koji dozvoljavaju ljubimce te godine?
 db.getCollection('rents').aggregate([
     {
         $match : {
@@ -88,7 +112,6 @@ db.getCollection('rents').aggregate([
         $limit : 1
     } 
 ])
-
 ---------------------------------------------------------------------------------------------------------------------------------------
 // 5. Da li je prosječna cijena stanova koji su renovirani u posljednjih 10 godina veća od prosječne cijene stanova za svaki od gradova?
 db.getCollection('rents').aggregate([
