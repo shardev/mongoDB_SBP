@@ -1,4 +1,4 @@
-1. Koji tip objekata je energetski najefikasniji i šta se najčešće koristi kao izvor energije kod takvih tipova?
+// 1. Koji tip objekata je energetski najefikasniji i šta se najčešće koristi kao izvor energije kod takvih tipova?
 db.getCollection('rents').aggregate([
     {
         $match: {
@@ -55,7 +55,7 @@ db.getCollection('rents').aggregate([
 ])
 
 --------------------------------------------------------------------------------------------------------------------------------------
-4) U kojoj godini (ako je poznata) su se zbirno najskuplje izdavali stanovi i koliko ima stanova koji dozvoljavaju ljubimce te godine?
+// 4. U kojoj godini (ako je poznata) su se zbirno najskuplje izdavali stanovi i koliko ima stanova koji dozvoljavaju ljubimce te godine?
 db.getCollection('rents').aggregate([
     {
         $match : {
@@ -92,9 +92,7 @@ db.getCollection('rents').aggregate([
 --------------------------------------------------------------------------------------
 // TODO
 
-// 7) Da li je prosečna cena stanova koji su renovirani u poslednjih 10 godina veća 
-// od prosečne cene stanova 
-// ZA SVAKI OD GRADOVA?
+// 7. Da li je prosečna cena stanova koji su renovirani u poslednjih 10 godina veća od prosečne cene stanova ZA SVAKI OD GRADOVA?
 db.getCollection('rents').aggregate([
     { 
         $project: {
