@@ -89,62 +89,62 @@ db.getCollection('rents').aggregate([
     } 
 ])
 
---------------------------------------------------------------------------------------
-// TODO
-// 7. Da li je prosečna cena stanova koji su renovirani u poslednjih 10 godina veća od prosečne cene stanova ZA SVAKI OD GRADOVA?
+---------------------------------------------------------------------------------------------------------------------------------------
+// 5. Da li je prosječna cijena stanova koji su renovirani u posljednjih 10 godina veća od prosječne cijene stanova za svaki od gradova?
 db.getCollection('rents').aggregate([
-    { 
-        $project: {
-            "_id": 0,
-            "baseRent": 1,
-            "regio2": 1,
-            "lastRefurbish" : 1,
-            "type": { "$literal": ["c","lf"] }
-        }
-    },
-    { 
-        "$unwind": "$type" 
-    },
     { 
         $group: {
             "_id": { 
                 "city": "$regio2",
-                "lastRefurbish" : "$lastRefurbish",
-                "type": "$type",
             },
-            "prices": { 
-                 "$cond": [{ "$eq": [ "$type", "c" ] },
-                            { $push : "$baseRent" },
-                            { $cond : [{ "$gt": [ "$lastRefurbish", 2010 ] },
-                                { $push : "$baseRent" }, {null} ]} 
-                          ]    
-            }
+            "pricesRefurbish10y": { 
+                 $sum: { 
+                     $cond: [
+                         { $gte: ['$lastRefurbish', 2010] } ,
+                         "$baseRent", 
+                          0 
+                     ]
+                }  
+            },
+            "counterRefurbish10y": { 
+                 $sum: { 
+                     $cond: [
+                        { $gte: ['$lastRefurbish', 2010] },
+                          1, 
+                          0 
+                     ]
+                }  
+            },
+            "pricesPerCity" : {
+                $sum :  "$baseRent"  
+            },
+            "counterPerCity" : {
+                $sum :  1
+            } 
         }   
-     }
-])
-     
-db.getCollection('rents').aggregate([
-     { 
-        $project: {
-            "_id": 0,
-            "baseRent": 1,
-            "regio2": 1,
-            "lastRefurbish" : 1,
-            "type": { "$literal": ["c","lf"] }
-        }
-    },
-    { 
-        "$unwind": "$type" 
-    },
-    { 
-        $group: {
-            "_id": { 
-                "city": "$regio2",
-                "lastRefurbish" : "$lastRefurbish",
-                "type": "$type",
-                "lr" : "$lastRefurbish"
+     },
+     {
+         $project : {
+            "_id" : 1, 
+            "city" : 1,
+            "avgPricesRefurbish10y" : {
+                $cond: [ { $eq: [ "$counterRefurbish10y", 0 ] }, 0, {$divide: [ "$pricesRefurbish10y", "$counterRefurbish10y" ] } ]     
             },
-            "prices" : { $addToSet : "$baseRent" }
+            "avgPricesPerCity" : {
+                $cond: [ { $eq: [ "$counterPerCity", 0 ] }, 0, {$divide: [ "$pricesPerCity", "$counterPerCity" ] } ]  
+            }
          }
-    }
+     },
+     {
+         $project: {
+            "_id" : 1, 
+            "city" : 1,
+            "avgPricesRefurbish10y" : 1,
+            "avgPricesPerCity" : 1,
+            "higherAvgRefurbishPrice" : { $cmp : ["$avgPricesRefurbish10y", "$avgPricesPerCity"]}
+         }
+     },
+     {
+         $sort : { "_id.city" : 1 }
+     }
 ])
