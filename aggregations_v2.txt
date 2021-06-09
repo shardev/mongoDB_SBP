@@ -1,0 +1,103 @@
+// 1. Sta se najčešće koristi kao izvor energije kod energetski najefikasnijih objekata i koji tip objekata je najcesce energetski najefikasniji?
+db.getCollection('rents').aggregate([
+    {
+        $match: {
+            "energyEfficiencyClass": {$eq: "B"} //change efficiency
+            }
+    },
+    {
+        $group: {
+            "_id": { "typeOfFlat" : "$typeOfFlat" }, 
+            "count": { $sum: 1},
+            "typeOfHeating" : {$push : "$heatingType" }
+        }
+    },
+    {
+        $sort: {
+            "count" : -1
+            }
+    },
+    {
+        $limit : 1
+    },
+    {
+        $unwind :  "$typeOfHeating" 
+    },
+    {
+        $group: {
+            "_id": {
+                "heating": "$typeOfHeating"
+            },
+            "countOfUnitsWithHeating": {
+                $sum: 1
+            },
+            "tFlat" : { $first : "$_id.typeOfFlat" }
+        }
+  },
+  {
+      $sort : {
+          "countOfUnitsWithHeating" : -1
+      }
+  },
+  {
+      $limit : 1
+  }
+])
+
+--------------------------------------------------------------------------------------
+// 2. TODO
+db.getCollection('rents').aggregate([
+   {
+       $group : { 
+                "_id" : {
+                    "noRooms" : "$noRooms"} ,
+                avgArea : { $avg : "$livingSpace" },
+                avgServiceCharge : {$avg : "$serviceCharge" },
+                numberOfUnits : { $sum : 1},
+                numberOfHasBalcony : {
+                     $push : "$has"},
+                numberOfHasKitchen : {
+                     $sum: { $cond: [
+                    { "$eq": [ "$has.2", true ] }, 1, 0 ]}
+                },
+                numberOfHasLift : {
+                     $sum: { $cond: [
+                    { "$eq": [ "$has.4", true ] }, 1, 0 ]}
+                },
+                numberOfHasGarden : {
+                     $sum: { $cond: [
+                    { "$eq": [ "$has.5", true ] }, 1, 0 ]}
+                }
+        }
+   },
+   {
+       $sort : { "numberOfUnits" : -1 }  
+   } 
+])
+--------------------------------------------------------------------------------------
+// 3. Iz koje godine ima najvise stanova i u kom gradu a da su renovirani u zadnjih 10 godina i koliko je prosjecna cijena zakupa?
+db.getCollection('rents').aggregate([
+    {
+        $match : { "lastRefurbish" : { $gt : 2011 } }
+    },
+    { 
+        $group : { 
+            "_id" : { "city" : "$regio2", "year" : "$yearConstructed" },
+            avgRentsPerCity : { $avg : "$baseRent" },
+            counterPerCity : { $sum : 1}
+        }
+    },
+    { 
+        $sort : { 
+            "counterPerCity" : -1
+        }
+    },
+    {
+        $limit : 1
+    }
+])
+
+-----------------------------------------------------------------------------------------
+4. TODO ISTO KAO I PRETPROSLO
+
+-----------------------------------------------------------------------------------------

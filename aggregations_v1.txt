@@ -56,6 +56,14 @@ db.getCollection('rents').aggregate([
                 avgArea : { $avg : "$livingSpace" },
                 avgServiceCharge : {$avg : "$serviceCharge" },
                 numberOfUnits : { $sum : 1},
+                numberOfNewlyConstructed : {
+                     $sum: { $cond: [
+                    { "$eq": [ "$newlyConst", true ] }, 1, 0 ]}
+                },
+                numberOfHasBalcony : {
+                     $sum: { $cond: [
+                    { "$eq": [ "$balcony", true ] }, 1, 0 ]}
+                },
                 numberOfHasKitchen : {
                      $sum: { $cond: [
                     { "$eq": [ "$hasKitchen", true ] }, 1, 0 ]}
@@ -68,10 +76,7 @@ db.getCollection('rents').aggregate([
                      $sum: { $cond: [
                     { "$eq": [ "$garden", true ] }, 1, 0 ]}
                 },
-                numberOfNewlyConstructed : {
-                     $sum: { $cond: [
-                    { "$eq": [ "$newlyConst", true ] }, 1, 0 ]}
-                }
+               
         }
    },
    {
