@@ -46,13 +46,37 @@ db.getCollection('rents').aggregate([
 
 -------------------------------------------------------------------------------------------------------------
 // 2. Koja je prosječna veličina stana u m2 u zavisnosti od broja soba tog stana i postojanja ostave u istom?
+// Prikaziti ukupan broj stanova za datu grupu, zatim broj stanova koji posjeduju pojedine pogodnosti.
 db.getCollection('rents').aggregate([
-    { 
-        $group : { 
-                "_id" : {"noRooms" : "$noRooms", "cellar" : "$cellar" } ,
-                avgArea : { $avg : "$livingSpace" }         
+   {
+       $group : { 
+                "_id" : {
+                    "noRooms" : "$noRooms", 
+                    "cellar" : "$cellar" } ,
+                avgArea : { $avg : "$livingSpace" },
+                avgServiceCharge : {$avg : "$serviceCharge" },
+                numberOfUnits : { $sum : 1},
+                numberOfHasKitchen : {
+                     $sum: { $cond: [
+                    { "$eq": [ "$hasKitchen", true ] }, 1, 0 ]}
+                },
+                numberOfHasLift : {
+                     $sum: { $cond: [
+                    { "$eq": [ "$lift", true ] }, 1, 0 ]}
+                },
+                numberOfHasGarden : {
+                     $sum: { $cond: [
+                    { "$eq": [ "$garden", true ] }, 1, 0 ]}
+                },
+                numberOfNewlyConstructed : {
+                     $sum: { $cond: [
+                    { "$eq": [ "$newlyConst", true ] }, 1, 0 ]}
+                }
         }
-    } 
+   },
+   {
+       $sort : { "numberOfUnits" : -1 }  
+   } 
 ])
 
 ----------------------------------------------------------------------------------------------------
