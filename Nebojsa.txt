@@ -1,0 +1,151 @@
+1.1
+
+db.getCollection('rents').aggregate([
+    {
+        $match : {
+            "typeOfFlat" : {$ne : NaN},
+            "baseRent" : {$ne : NaN}
+        }
+    },
+    {
+        $group : {
+            "_id" : {"type" : "$typeOfFlat", "lift" : "$lift"},
+            "numOfUnits" : {$sum : 1},
+            "sumBaseRent" : {$sum : "$baseRent"}
+        }
+    },
+    {
+        $project : {
+            "avgBaseRent" : {$divide : ["$sumBaseRent", "$numOfUnits"]}
+        }
+    },
+    {
+        $sort : {
+            "avgBaseRent" : -1
+        }
+    }
+    
+])
+
+
+2.1
+
+db.getCollection('rents').aggregate([
+    {
+        $match : {
+            "typeOfFlat" : {$ne : NaN},
+            "baseRent" : {$ne : NaN}
+        }
+    },
+    {
+        $group : {
+            "_id" : {"type" : "$typeOfFlat", "lift" : {$arrayElemAt: ["$has", 4]}},
+            "numOfUnits" : {$sum : 1},
+            "sumBaseRent" : {$sum : "$baseRent"}
+        }
+    },
+    {
+        $project : {
+            "avgBaseRent" : {$divide : ["$sumBaseRent", "$numOfUnits"]}
+        }
+    },
+    {
+        $sort : {
+            "avgBaseRent" : -1
+        }
+    }
+    
+])
+
+
+1.2
+
+db.getCollection('rents').aggregate([
+    {
+        $match : {
+            "livingSpace" : { $gte : 20 },
+            "baseRent" : {$lte : 4000}
+        }
+    },
+    {
+        $group : {
+            "_id" : {"city" : "$regio3"},
+            "maxAvgMeterPrice" : {$max : {$divide : ["$baseRent", "$livingSpace"]}},
+            "minAvgMeterPrice" : {$min : {$divide : ["$baseRent", "$livingSpace"]}}
+        }
+    },
+    {
+        $sort : {
+            "maxAvgMeterPrice" : -1
+        }
+    }
+])
+
+1.3
+
+db.getCollection('rents').aggregate([
+    {
+        $match : {
+            "lastRefurbish" : {$ne : NaN},
+            "interiorQual" : {$ne : NaN},
+            "petsAllowed" : {$ne : NaN}
+        }
+    },
+    {
+        $group : {
+            "_id" : {"interior" : "$interiorQual"},
+            "numberOfUnits" : {$sum : 1},
+            "petsYes" : {$sum : {$cond : [{$eq : ["$petsAllowed", "yes"]}, 1, 0]}},
+            "petsNo" : {$sum : {$cond : [{$eq : ["$petsAllowed", "no"]}, 1, 0]}},
+            "petsNeg" : {$sum : {$cond : [{$eq : ["$petsAllowed", "negotiable"]}, 1, 0]}}
+        }
+    },
+    {
+        $project: {
+            "percentOfAllowedPets" : {$divide : ["$petsYes", "$numberOfUnits"]},
+            "percentOfNotAllowedPets" : {$divide : ["$petsNo", "$numberOfUnits"]},
+            "percentOfNegAllowedPets" : {$divide : ["$petsNeg", "$numberOfUnits"]}
+        }
+    },
+    {
+        $sort: {
+            "percentOfNotAllowedPets" : -1
+        }
+    }
+])
+
+1.4
+
+db.getCollection('rents').aggregate([
+    {
+        $match : {
+            $and : [ {"totalRent" : {$ne : NaN}}, {"totalRent" : {$lte : 5000}}]
+        }
+    },
+    {
+        $group : {
+            "_id" : null,
+            "sumTotalRentBef1900" : {$sum : {$cond : [{$lt : ["$yearConstructed",1900]}, "$totalRent", 0]}},
+            "cntTotalRentBef1900" : {$sum : {$cond : [{$lt : ["$yearConstructed",1900]}, 1, 0]}},
+            "sumTotalRent1900-1950" : {$sum : {$cond : [{$and : [ {$gte : ["$yearConstructed",1900]}, {$lt : ["$yearConstructed",1950]}]}, "$totalRent", 0]}},
+            "cntTotalRent1900-1950" : {$sum : {$cond : [{$and : [ {$gte : ["$yearConstructed",1900]}, {$lt : ["$yearConstructed",1950]}]}, 1, 0]}},
+            "sumTotalRent1950-2000" : {$sum : {$cond : [{$and : [ {$gte : ["$yearConstructed",1950]}, {$lt : ["$yearConstructed",2000]}]}, "$totalRent", 0]}},
+            "cntTotalRent1950-2000" : {$sum : {$cond : [{$and : [ {$gte : ["$yearConstructed",1950]}, {$lt : ["$yearConstructed",2000]}]}, 1, 0]}},
+            "sumTotalRentAft2000" : {$sum : {$cond : [{$gte : ["$yearConstructed",2000]}, "$totalRent", 0]}},
+            "cntTotalRentAft2000" : {$sum : {$cond : [{$gte : ["$yearConstructed",2000]}, 1, 0]}}
+        }
+    },
+    {
+        $project : {
+            "avgRentBef1900" : {$divide : ["$sumTotalRentBef1900","$cntTotalRentBef1900"]},
+            "avgRent1900-1950" : {$divide : ["$sumTotalRent1900-1950","$cntTotalRent1900-1950"]},
+            "avgRent1950-2000" : {$divide : ["$sumTotalRent1950-2000","$cntTotalRent1950-2000"]},
+            "avgRentAft2000" : {$divide : ["$sumTotalRentAft2000","$cntTotalRentAft2000"]}
+        }
+    }
+   
+])
+
+
+
+
