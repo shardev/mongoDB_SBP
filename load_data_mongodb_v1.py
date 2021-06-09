@@ -3,10 +3,10 @@ import pandas as pd
 import pymongo
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-dataPath = '../../immo_data.csv'
+dataPath = 'immo_data.csv'
 
 # Load data
-data1 = pd.read_csv(dataPath).head(10)
+data1 = pd.read_csv(dataPath)
 
 # Create db in mongo
 mydb = myclient["germanyRent_v1"]

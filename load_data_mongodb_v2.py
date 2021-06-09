@@ -5,10 +5,10 @@ import pymongo
 JOINING_COLUMN = 'geo_krs'
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-dataPath = '../../immo_data.csv'
+dataPath = 'immo_data.csv'
 
 # Load data
-data1 = pd.read_csv(dataPath).head(10)
+data1 = pd.read_csv(dataPath)
 
 # Create db in mongo
 mydb = myclient["germanyRent_v2"]
@@ -32,7 +32,7 @@ for _, row in data1.iterrows():
         
         # Group boolean values in one attribute
         if columnName in ["newlyConst", "balcony", "hasKitchen", "cellar", "lift", "garden"]:
-            booleanGroup.append({columnName : row[columnName]})
+            booleanGroup.append(row[columnName])
         else: 
             singleRent[columnName] = row[columnName]
     

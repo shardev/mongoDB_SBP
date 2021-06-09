@@ -55,18 +55,20 @@ db.getCollection('rents').aggregate([
                 avgServiceCharge : {$avg : "$serviceCharge" },
                 numberOfUnits : { $sum : 1},
                 numberOfHasBalcony : {
-                     $push : "$has"},
+                     $sum: { $cond: [
+                    { "$eq": [ {$arrayElemAt: ["$has", 1]}, true ] }, 1, 0 ]}
+                },
                 numberOfHasKitchen : {
                      $sum: { $cond: [
-                    { "$eq": [ "$has.2", true ] }, 1, 0 ]}
+                    { "$eq": [ {$arrayElemAt: ["$has", 2]}, true ] }, 1, 0 ]}
                 },
                 numberOfHasLift : {
                      $sum: { $cond: [
-                    { "$eq": [ "$has.4", true ] }, 1, 0 ]}
+                    { "$eq": [ {$arrayElemAt: ["$has", 4]}, true ] }, 1, 0 ]}
                 },
                 numberOfHasGarden : {
                      $sum: { $cond: [
-                    { "$eq": [ "$has.5", true ] }, 1, 0 ]}
+                    { "$eq": [ {$arrayElemAt: ["$has", 5]}, true ] }, 1, 0 ]}
                 }
         }
    },
