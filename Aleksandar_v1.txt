@@ -2,7 +2,7 @@
 db.getCollection('rents').aggregate([
     {
         $match: {
-            "energyEfficiencyClass": {$eq: "B"} //change efficiency
+            "energyEfficiencyClass": {$eq: "A"} 
             }
     },
     {

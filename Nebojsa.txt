@@ -1,4 +1,5 @@
-1.1
+1.1 Koliko postojanje lifta u zgradi utiče na cenu određenih tipova stanova?
+//Grupisanje stanova po postojanju lifta i po tipu stana i računanje prosečne cene za tako grupisane stanove
 
 db.getCollection('rents').aggregate([
     {
@@ -28,7 +29,7 @@ db.getCollection('rents').aggregate([
 ])
 
 
-2.1
+2.1 Nakon primene šablona atributa.
 
 db.getCollection('rents').aggregate([
     {
@@ -39,7 +40,7 @@ db.getCollection('rents').aggregate([
     },
     {
         $group : {
-            "_id" : {"type" : "$typeOfFlat", "lift" : {$arrayElemAt: ["$has", 4]}},
+            "_id" : {"type" : "$typeOfFlat", "lift" : "$has.lift"},
             "numOfUnits" : {$sum : 1},
             "sumBaseRent" : {$sum : "$baseRent"}
         }
@@ -58,7 +59,7 @@ db.getCollection('rents').aggregate([
 ])
 
 
-1.2
+1.2/2.2 Koji je najskuplji/najjeftiniji zakup po metru kvadratnom za svaki od gradova?
 
 db.getCollection('rents').aggregate([
     {
@@ -81,7 +82,8 @@ db.getCollection('rents').aggregate([
     }
 ])
 
-1.3
+1.3/2.3 Za renovirane stanove odrediti procenat stanova koji dozvoljavaju/ne dozvoljavaju/ ili postoji mogućnost
+useljavanja kućnih ljubimaca grupisanih po kvalitetu enterijera stana.
 
 db.getCollection('rents').aggregate([
     {
@@ -114,7 +116,7 @@ db.getCollection('rents').aggregate([
     }
 ])
 
-1.4
+1.4/2.4 U kom periodu su izgrađeni stanovi sa prosečno najvećom/najmanjom cenom zakupa?
 
 db.getCollection('rents').aggregate([
     {
@@ -144,6 +146,64 @@ db.getCollection('rents').aggregate([
         }
     }
    
+])
+
+1.5/2.5 Koliki je broj stanova, grupisan po sobnosti, takvih da isti imaju i veš mašinu i kadu u kupatilu?
+
+db.getCollection('rents').aggregate([
+    {
+        $match : {
+            "facilities" : {$ne : NaN},
+            "noRooms" : {$lte : 8},
+            $and : [{"facilities" : { $regex: /[Bade]?wanne/}},{"facilities" : { $regex: /[W w]aschmaschine/ }}]
+        }
+    },
+    {
+        $group: {
+            "_id" : {"noOfRooms" : "$noRooms"},
+            "numOfUnits" : {$sum : 1}
+        }
+    },
+    {
+        $project : {
+            "numOfFlatsWithLaundryAndBath" : "$numOfUnits"
+        }
+    },
+    {
+        $sort : {
+            "numOfFlatsWithLaundryAndBath" : -1
+        }
+    }
+])
+
+
+1.5 Za rad sa indeksom
+
+db.getCollection('rents').aggregate([
+    {
+        $match : {
+            "facilities" : {$ne : NaN},
+            "noRooms" : {$lte : 8},
+            $text : {$search : "wanne"},
+            $text : {$search : "Waschmaschine"}
+        }
+    },
+    {
+        $group: {
+            "_id" : {"noOfRooms" : "$noRooms"},
+            "numOfUnits" : {$sum : 1}
+        }
+    },
+    {
+        $project : {
+            "numOfFlatsWithLaundryAndBath" : "$numOfUnits"
+        }
+    },
+    {
+        $sort : {
+            "numOfFlatsWithLaundryAndBath" : -1
+        }
+    }
 ])
 
 

@@ -5,11 +5,10 @@ import pymongo
 JOINING_COLUMN = 'geo_krs'
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-dataPath = 'immo_data.csv'
+dataPath = '../../immo_data.csv'
 
 # Load data
 data1 = pd.read_csv(dataPath)
-
 # Create db in mongo
 mydb = myclient["germanyRent_v2"]
 # Create rent collection
@@ -24,7 +23,7 @@ for c in data1.geo_krs.unique():
 # Load rows from dataset into dictionaries
 for _, row in data1.iterrows():
     singleRent = {}
-    booleanGroup = []
+    booleanGroup = {}
     for columnName in data1.columns:
         if columnName == JOINING_COLUMN:
             summedRentsPerCity[row[JOINING_COLUMN]][0] += row['baseRent']
@@ -32,7 +31,7 @@ for _, row in data1.iterrows():
         
         # Group boolean values in one attribute
         if columnName in ["newlyConst", "balcony", "hasKitchen", "cellar", "lift", "garden"]:
-            booleanGroup.append(row[columnName])
+            booleanGroup[columnName] = row[columnName]
         else: 
             singleRent[columnName] = row[columnName]
     
