@@ -1,4 +1,5 @@
-// 2.1. Sta se najčešće koristi kao izvor energije kod energetski najefikasnijih objekata i koji tip objekata je najcesce energetski najefikasniji?
+// -------------------------------------------------------------------------------------------------------------
+// 1. What is most often used as a source of energy in the most energy-efficient buildings and which type of building is the most important and most energy-efficient?
 db.getCollection('rents').aggregate([
     {
         $match: {
@@ -44,39 +45,48 @@ db.getCollection('rents').aggregate([
   }
 ])
 
---------------------------------------------------------------------------------------
-// 2.2 Koja je prosječna veličina stana u m2 u zavisnosti od broja soba tog stana i postojanja ostave u istom?
-// Prikaziti ukupan broj stanova za datu grupu, zatim broj stanova koji posjeduju pojedine pogodnosti.
+// -------------------------------------------------------------------------------------------------------------
+// 2. What is the average size of an apartment in m2 depending on the number of rooms in that apartment and the existence of a storage room in the same?
+// Display the total number of apartments for the given group, then the number of apartments that have certain amenities.
 db.getCollection('rents').aggregate([
    {
        $group : { 
                 "_id" : {
-                    "noRooms" : "$noRooms"} ,
+                    "noRooms" : "$noRooms", 
+                    "cellar" : "$cellar" } ,
                 avgArea : { $avg : "$livingSpace" },
                 avgServiceCharge : {$avg : "$serviceCharge" },
                 numberOfUnits : { $sum : 1},
+                numberOfNewlyConstructed : {
+                     $sum: { $cond: [
+                    { "$eq": [ "$newlyConst", true ] }, 1, 0 ]}
+                },
                 numberOfHasBalcony : {
-                     $push : "$has"},
+                     $sum: { $cond: [
+                    { "$eq": [ "$balcony", true ] }, 1, 0 ]}
+                },
                 numberOfHasKitchen : {
                      $sum: { $cond: [
-                    { "$eq": [ "$has.hasKitchen", true ] }, 1, 0 ]}
+                    { "$eq": [ "$hasKitchen", true ] }, 1, 0 ]}
                 },
                 numberOfHasLift : {
                      $sum: { $cond: [
-                    { "$eq": [ "$has.lift", true ] }, 1, 0 ]}
+                    { "$eq": [ "$lift", true ] }, 1, 0 ]}
                 },
                 numberOfHasGarden : {
                      $sum: { $cond: [
-                    { "$eq": [ "$has.garden", true ] }, 1, 0 ]}
-                }
+                    { "$eq": [ "$garden", true ] }, 1, 0 ]}
+                },
+               
         }
    },
    {
        $sort : { "numberOfUnits" : -1 }  
    } 
 ])
---------------------------------------------------------------------------------------
-// 2.3. Iz koje godine ima najvise stanova i u kom gradu a da su renovirani u zadnjih 10 godina i koliko je prosjecna cijena zakupa?
+
+// ----------------------------------------------------------------------------------------------------
+// 3. From which year are there the most apartments and in which city and were they renovated in the last 10 years and what is the average rental price?
 db.getCollection('rents').aggregate([
     {
         $match : { "lastRefurbish" : { $gt : 2011 } }
@@ -98,8 +108,8 @@ db.getCollection('rents').aggregate([
     }
 ])
 
------------------------------------------------------------------------------------------
-// 2.4. U kojoj godini su napravljeni stanovi (ako je poznata) tako da se zbirno najskuplje izdaju i koliko ima stanova koji dozvoljavaju ljubimce te godine?
+// --------------------------------------------------------------------------------------------------------------------------------------
+// 4. In what year were the apartments built (if known) so that they are collectively the most expensive and how many apartments are there that allow pets in that year?
 db.getCollection('rents').aggregate([
     {
         $match : {
@@ -132,13 +142,14 @@ db.getCollection('rents').aggregate([
         $limit : 1
     } 
 ])
------------------------------------------------------------------------------------------
-// 2.5. Da li je prosječna cijena stanova koji su renovirani u posljednjih 11 godina veća od prosječne cijene stanova za svaki od gradova?
+
+// ---------------------------------------------------------------------------------------------------------------------------------------
+// 5. Is the average price of apartments that have been renovated in the last 10 years higher than the average price of apartments for each of the cities?
 db.getCollection('rents').aggregate([
     { 
         $group: {
             "_id": { 
-                "cityPrimary": "$regio2",
+                "city": "$regio2",
             },
             "pricesRefurbish10y": { 
                  $sum: { 
@@ -157,30 +168,25 @@ db.getCollection('rents').aggregate([
                           0 
                      ]
                 }  
-            }
-        }
-     },
-     {
-        $lookup: {
-                from: "cities",
-                localField: "_id.cityPrimary",
-                foreignField: "city",
-                as: "cities_rents"
-        }
-     },
-     {  
-         $unwind :  "$cities_rents" 
+            },
+            "pricesPerCity" : {
+                $sum :  "$baseRent"  
+            },
+            "counterPerCity" : {
+                $sum :  1
+            } 
+        }   
      },
      {
          $project : {
-                "_id" : 1, 
-                "city" : 1,
-                "avgPricesRefurbish10y" : {
-                    $cond: [ { $eq: [ "$counterRefurbish10y", 0 ] }, 0, {$divide: [ "$pricesRefurbish10y", "$counterRefurbish10y" ] } ]     
-                },
-                "avgPricesPerCity": {
-                    $divide: [ "$cities_rents.rentSum", "$cities_rents.unitCounter" ]   
-                }
+            "_id" : 1, 
+            "city" : 1,
+            "avgPricesRefurbish10y" : {
+                $cond: [ { $eq: [ "$counterRefurbish10y", 0 ] }, 0, {$divide: [ "$pricesRefurbish10y", "$counterRefurbish10y" ] } ]     
+            },
+            "avgPricesPerCity" : {
+                $cond: [ { $eq: [ "$counterPerCity", 0 ] }, 0, {$divide: [ "$pricesPerCity", "$counterPerCity" ] } ]  
+            }
          }
      },
      {
@@ -195,4 +201,4 @@ db.getCollection('rents').aggregate([
      {
          $sort : { "_id.city" : 1 }
      }
- ])
+])

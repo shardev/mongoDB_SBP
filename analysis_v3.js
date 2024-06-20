@@ -1,6 +1,5 @@
-1.1 Koliko postojanje lifta u zgradi utiče na cenu određenih tipova stanova?
-//Grupisanje stanova po postojanju lifta i po tipu stana i računanje prosečne cene za tako grupisane stanove
-
+// 1.1 How much does the existence of an elevator in a building affect the price of certain types of apartments?
+// Grouping of apartments by the existence of an elevator and by type of apartment and calculating the average price for apartments grouped in this way
 db.getCollection('rents').aggregate([
     {
         $match : {
@@ -29,7 +28,6 @@ db.getCollection('rents').aggregate([
 ])
 
 
-2.1 Nakon primene šablona atributa.
 
 db.getCollection('rents').aggregate([
     {
@@ -59,8 +57,7 @@ db.getCollection('rents').aggregate([
 ])
 
 
-1.2/2.2 Koji je najskuplji/najjeftiniji zakup po metru kvadratnom za svaki od gradova?
-
+// 1.2/2.2 What is the most expensive/cheapest rent per square meter for each of the cities?
 db.getCollection('rents').aggregate([
     {
         $match : {
@@ -82,9 +79,8 @@ db.getCollection('rents').aggregate([
     }
 ])
 
-1.3/2.3 Za renovirane stanove odrediti procenat stanova koji dozvoljavaju/ne dozvoljavaju/ ili postoji mogućnost
-useljavanja kućnih ljubimaca grupisanih po kvalitetu enterijera stana.
-
+// 1.3/2.3 For renovated apartments, determine the percentage of apartments that allow/do not allow/or there is a possibility
+// moving in pets grouped by the quality of the interior of the apartment.
 db.getCollection('rents').aggregate([
     {
         $match : {
@@ -116,8 +112,7 @@ db.getCollection('rents').aggregate([
     }
 ])
 
-1.4/2.4 U kom periodu su izgrađeni stanovi sa prosečno najvećom/najmanjom cenom zakupa?
-
+//1.4/2.4 In what period were the apartments with the highest/lowest average rental price built?
 db.getCollection('rents').aggregate([
     {
         $match : {
@@ -148,8 +143,7 @@ db.getCollection('rents').aggregate([
    
 ])
 
-1.5/2.5 Koliki je broj stanova, grupisan po sobnosti, takvih da isti imaju i veš mašinu i kadu u kupatilu?
-
+//1.5/2.5 How many apartments, grouped by room type, are such that they have a washing machine and a bathtub in the bathroom?
 db.getCollection('rents').aggregate([
     {
         $match : {
@@ -205,7 +199,3 @@ db.getCollection('rents').aggregate([
         }
     }
 ])
-
-
-
-
